@@ -4,7 +4,6 @@
  */
 
 import { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
-import API_URL from '../utils/api';
 
 const MusicContext = createContext(null);
 
@@ -237,7 +236,7 @@ export function MusicProvider({ children }) {
 
     // Resolve stream source
     try {
-      const response = await fetch(`${API_URL}/api/music/resolve`, {
+      const response = await fetch('/api/music/resolve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ track })
@@ -428,7 +427,7 @@ export function MusicProvider({ children }) {
   // ============ SEARCH ============
   const searchMusic = useCallback(async (query, options = {}) => {
     try {
-      const response = await fetch(`${API_URL}/api/music/search`, {
+      const response = await fetch('/api/music/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, ...options })
@@ -445,7 +444,7 @@ export function MusicProvider({ children }) {
   // ============ LIBRARY ============
   const saveToLibrary = useCallback(async (track) => {
     try {
-      const response = await fetch(`${API_URL}/api/music/save`, {
+      const response = await fetch('/api/music/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -461,7 +460,7 @@ export function MusicProvider({ children }) {
 
   const getLibrary = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/api/music/library`, {
+      const response = await fetch('/api/music/library', {
         credentials: 'include'
       });
       

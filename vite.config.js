@@ -6,14 +6,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:5000',
-        changeOrigin: true,
-      },
-      '/audio': {
-        target: process.env.VITE_API_URL || 'http://localhost:5000',
-        changeOrigin: true,
-      },
+      '/api': 'http://localhost:5000',
+      '/audio': 'http://localhost:5000',
     },
   },
 });

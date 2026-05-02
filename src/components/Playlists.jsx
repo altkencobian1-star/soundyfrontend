@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
-import API_URL from '../utils/api';
 import { PlusCircle, Play, Music, Trash2, ListMusic } from 'lucide-react';
 
 export default function Playlists({ selectedPlaylist, navigate }) {
@@ -22,13 +21,13 @@ export default function Playlists({ selectedPlaylist, navigate }) {
   }, [selectedPlaylist]);
 
   async function loadPlaylists() {
-    const res = await fetch(`${API_URL}/api/playlists`, { headers: getAuthHeaders() });
+    const res = await fetch('/api/playlists', { headers: getAuthHeaders() });
     const data = await res.json();
     setPlaylists(data.playlists || []);
   }
 
   async function loadPlaylistSongs(id) {
-    const res = await fetch(`${API_URL}/api/playlists/${id}`, { headers: getAuthHeaders() });
+    const res = await fetch(`/api/playlists/${id}`, { headers: getAuthHeaders() });
     const data = await res.json();
     setPlaylistSongs(data.songs || []);
   }
@@ -36,7 +35,7 @@ export default function Playlists({ selectedPlaylist, navigate }) {
   async function createPlaylist(e) {
     e.preventDefault();
     if (!newName.trim()) return;
-    const res = await fetch(`${API_URL}/api/playlists`, {
+    const res = await fetch('/api/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ name: newName, description: newDesc }),
@@ -51,13 +50,13 @@ export default function Playlists({ selectedPlaylist, navigate }) {
   }
 
   async function deletePlaylist(id) {
-    await fetch(`${API_URL}/api/playlists/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    await fetch(`/api/playlists/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     setPlaylists(prev => prev.filter(p => p.id !== id));
     if (selectedPlaylist?.id === id) navigate('playlists');
   }
 
   async function removeSong(songId) {
-    await fetch(`${API_URL}/api/playlists/${selectedPlaylist.id}/songs/${songId}`, {
+    await fetch(`/api/playlists/${selectedPlaylist.id}/songs/${songId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
-import API_URL from '../utils/api';
 import { Heart, Play, Music } from 'lucide-react';
 
 export default function Favorites({ navigate }) {
@@ -10,14 +9,14 @@ export default function Favorites({ navigate }) {
   const { getAuthHeaders } = useAuth();
 
   useEffect(() => {
-    fetch(`${API_URL}/api/songs/favorites/list`, { headers: getAuthHeaders() })
+    fetch('/api/songs/favorites/list', { headers: getAuthHeaders() })
       .then(res => res.json())
       .then(data => setSongs(data.songs || []))
       .catch(() => {});
   }, []);
 
   async function toggleFavorite(song) {
-    await fetch(`${API_URL}/api/songs/favorite`, {
+    await fetch(`/api/songs/favorite`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ song }),

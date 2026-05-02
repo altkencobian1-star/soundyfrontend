@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useRef, useCallback, useEffect } f
 import { useAuth } from './AuthContext';
 import { useOffline } from './OfflineContext';
 import { getTrack } from '../utils/offlineStorage';
-import API_URL from '../utils/api';
 
 const PlayerContext = createContext(null);
 
@@ -29,11 +28,9 @@ function onYTReady(cb) {
   ytApiCallbacks.push(cb);
 }
 
+loadYouTubeAPI();
+
 export function PlayerProvider({ children }) {
-  // Load YouTube API only in browser, after component mounts
-  useEffect(() => {
-    loadYouTubeAPI();
-  }, []);
   const { token, getAuthHeaders } = useAuth();
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -297,7 +294,7 @@ export function PlayerProvider({ children }) {
       console.log('Using downloaded local file for playback');
       setVideoId(null);
       if (playerRef.current) { try { playerRef.current.destroy(); } catch {} playerRef.current = null; }
-      const streamUrl = `${API_URL}/api/songs/stream-by-path?path=${encodeURIComponent(downloadedSong.file_path)}`;
+      const streamUrl = `/api/songs/stream-by-path?path=${encodeURIComponent(downloadedSong.file_path)}`;
       console.log('Stream URL:', streamUrl);
       audio.src = streamUrl;
       audio.load();
@@ -333,7 +330,7 @@ export function PlayerProvider({ children }) {
       console.log('[Player] Searching YouTube for full song:', song.title, song.artist);
       
       try {
-        const searchResponse = await fetch(`${API_URL}/api/search/youtube?q=${encodeURIComponent(song.title + ' ' + song.artist + ' audio')}`, {
+        const searchResponse = await fetch(`/api/search/youtube?q=${encodeURIComponent(song.title + ' ' + song.artist + ' audio')}`, {
           headers: getAuthHeaders()
         });
         
@@ -385,7 +382,7 @@ export function PlayerProvider({ children }) {
     // For local songs (no source or source !== 'itunes'), use /api/songs/:id/stream
     setVideoId(null);
     if (playerRef.current) { try { playerRef.current.destroy(); } catch {} playerRef.current = null; }
-    const streamUrl = `${API_URL}/api/songs/${song.id}/stream`;
+    const streamUrl = `/api/songs/${song.id}/stream`;
     audio.src = streamUrl;
     audio.load();
     audio.play().catch((err) => {
@@ -544,7 +541,7 @@ export function PlayerProvider({ children }) {
     setLyricsLoading(true);
     try {
       // Try to fetch from backend lyrics endpoint
-      const res = await fetch(`${API_URL}/api/songs/lyrics/${encodeURIComponent(song.title)}/${encodeURIComponent(song.artist)}`);
+      const res = await fetch(`/api/songs/lyrics/${encodeURIComponent(song.title)}/${encodeURIComponent(song.artist)}`);
       if (res.ok) {
         const data = await res.json();
         setLyrics(data.lyrics || 'Lyrics not available for this song.');
@@ -613,8 +610,8 @@ export function PlayerProvider({ children }) {
         // Load from both download systems with auth headers
         const headers = getAuthHeaders();
         const [songsRes, offlineRes] = await Promise.allSettled([
-          fetch(`${API_URL}/api/songs/downloads/list`, { headers }),
-          fetch(`${API_URL}/api/offline/downloads`, { headers })
+          fetch('/api/songs/downloads/list', { headers }),
+          fetch('/api/offline/downloads', { headers })
         ]);
 
         let allDownloaded = [];

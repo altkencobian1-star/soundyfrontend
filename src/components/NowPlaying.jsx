@@ -1,6 +1,5 @@
 import { usePlayer } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
-import API_URL from '../utils/api';
 import { X, Heart, Plus, Share, MoreHorizontal, Music } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -11,7 +10,7 @@ export default function NowPlaying() {
 
   useEffect(() => {
     if (!currentSong) return;
-    fetch(`${API_URL}/api/songs/favorites/list`, { headers: getAuthHeaders() })
+    fetch(`/api/songs/favorites/list`, { headers: getAuthHeaders() })
       .then(res => res.json())
       .then(data => {
         const favs = data.songs || [];
@@ -25,7 +24,7 @@ export default function NowPlaying() {
 
   async function toggleFavorite() {
     if (!currentSong) return;
-    const res = await fetch(`${API_URL}/api/songs/favorite`, {
+    const res = await fetch(`/api/songs/favorite`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ song: currentSong }),

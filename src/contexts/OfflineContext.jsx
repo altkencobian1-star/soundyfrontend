@@ -12,7 +12,6 @@ import {
   getAllTracks,
   getStorageStats as getIDBStorageStats 
 } from '../utils/offlineStorage';
-import API_URL from '../utils/api';
 
 const OfflineContext = createContext(null);
 
@@ -113,7 +112,7 @@ export function OfflineProvider({ children }) {
       });
       
       console.log('[OfflineContext] Getting download URL for:', track.title);
-      const response = await fetch(`${API_URL}/api/songs/download`, {
+      const response = await fetch('/api/songs/download', {
         method: 'POST',
         headers: {
           ...getAuthHeaders(),
@@ -130,7 +129,7 @@ export function OfflineProvider({ children }) {
       }
       
       const audioUrl = data.localPath 
-        ? `${API_URL}/api/songs/stream-by-path?path=${encodeURIComponent(data.localPath)}` 
+        ? `/api/songs/stream-by-path?path=${encodeURIComponent(data.localPath)}` 
         : data.song?.file_path;
         
       if (!audioUrl) {

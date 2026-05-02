@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import API_URL from '../utils/api';
+import API_URL from './utils/api';
 
 const AuthContext = createContext(null);
 
@@ -7,13 +7,7 @@ const API = `${API_URL}/api/auth`;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  // Lazy init to avoid SSR issues - localStorage only available in browser
-  const [token, setToken] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('soundy_token');
-    }
-    return null;
-  });
+  const [token, setToken] = useState(localStorage.getItem('soundy_token'));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useOffline } from '../contexts/OfflineContext';
 import { useAuth } from '../contexts/AuthContext';
-import API_URL from '../utils/api';
 import { Download, Play, Music, WifiOff, Loader2, X, AlertCircle } from 'lucide-react';
 import { getOfflineSongs, getCacheInfo } from '../utils/offlineStorage';
 
@@ -38,7 +37,7 @@ export default function Downloads({ navigate }) {
 
     // Also fetch from API when online to sync
     if (!isOffline) {
-      fetch(`${API_URL}/api/songs/downloads/list`, { headers: getAuthHeaders() })
+      fetch('/api/songs/downloads/list', { headers: getAuthHeaders() })
         .then(res => res.json())
         .then(data => {
           if (data.songs?.length > 0 && songs.length === 0) {

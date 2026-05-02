@@ -1,7 +1,6 @@
 import { usePlayer } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useOffline } from '../contexts/OfflineContext';
-import API_URL from '../utils/api';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Heart, Download, Music, Shuffle, Repeat, Repeat1, List, Mic2, Minimize2, WifiOff
@@ -32,7 +31,7 @@ export default function Player({ navigate }) {
   useEffect(() => {
     if (!currentSong) return;
     // Check favorite status
-    fetch(`${API_URL}/api/songs/favorites/list`, { headers: getAuthHeaders() })
+    fetch(`/api/songs/favorites/list`, { headers: getAuthHeaders() })
       .then(res => res.json())
       .then(data => {
         const favs = data.songs || [];
@@ -43,7 +42,7 @@ export default function Player({ navigate }) {
       })
       .catch(() => {});
     // Check download status from API
-    fetch(`${API_URL}/api/songs/downloads/list`, { headers: getAuthHeaders() })
+    fetch(`/api/songs/downloads/list`, { headers: getAuthHeaders() })
       .then(res => res.json())
       .then(data => {
         const dls = data.songs || [];
@@ -64,7 +63,7 @@ export default function Player({ navigate }) {
 
   async function toggleFavorite() {
     if (!currentSong) return;
-    const res = await fetch(`${API_URL}/api/songs/favorite`, {
+    const res = await fetch(`/api/songs/favorite`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ song: currentSong }),
@@ -77,7 +76,7 @@ export default function Player({ navigate }) {
     if (!currentSong) return;
 
     // First, get the download URL from backend
-    const res = await fetch(`${API_URL}/api/songs/download`, {
+    const res = await fetch(`/api/songs/download`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ song: currentSong }),
@@ -97,7 +96,7 @@ export default function Player({ navigate }) {
       // Cache the actual audio file for offline playback
       if (data.localPath) {
         // Fetch the audio file as blob and save to IndexedDB
-        const streamUrl = `${API_URL}/api/songs/stream-by-path?path=${encodeURIComponent(data.localPath)}`;
+        const streamUrl = `/api/songs/stream-by-path?path=${encodeURIComponent(data.localPath)}`;
         console.log('[Player] Downloading audio file:', streamUrl);
         
         const audioResponse = await fetch(streamUrl, { headers: getAuthHeaders() });
