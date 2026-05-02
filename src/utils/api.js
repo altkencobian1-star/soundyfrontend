@@ -1,6 +1,6 @@
-// API Configuration - Temporary hardcoded URL to test
-const API_URL = "https://soundybackend.onrender.com";
-console.log('[API] Using hardcoded backend URL:', API_URL);
+// API Configuration - Use local backend for testing
+const API_URL = "http://localhost:5000";
+console.log('[API] Using local backend URL:', API_URL);
 
 // Only log in browser environment
 if (typeof window !== 'undefined') {
