@@ -1,4 +1,4 @@
-// API Configuration - Use Render backend for production
+// API Configuration - Use Render backend for production - V2
 const API_URL = "https://soundybackend.onrender.com";
 console.log('[API] Using Render backend URL:', API_URL);
 
