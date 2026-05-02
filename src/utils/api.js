@@ -1,7 +1,7 @@
 // API Configuration - Safe for SSR/Build
-const API_URL = typeof import.meta.env !== 'undefined' && import.meta.env.VITE_API_URL 
-  ? import.meta.env.VITE_API_URL 
-  : "https://soundybackend.onrender.com";
+const envUrl = typeof import.meta.env !== 'undefined' ? import.meta.env.VITE_API_URL : undefined;
+console.log('[API Debug] Raw env URL:', JSON.stringify(envUrl));
+const API_URL = envUrl || "https://soundybackend.onrender.com";
 
 // Only log in browser environment
 if (typeof window !== 'undefined') {
