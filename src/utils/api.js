@@ -1,3 +1,9 @@
-const API_URL = import.meta.env.VITE_API_URL || "https://soundybackend.onrender.com";
+// API Configuration - Hardcoded for production to avoid env issues
+const API_URL = "https://soundybackend.onrender.com";
+
+// Debug log
+if (typeof window !== 'undefined') {
+  console.log('[API] Using backend URL:', API_URL);
+}
 
 export default API_URL;

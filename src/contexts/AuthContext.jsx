@@ -4,6 +4,7 @@ import API_URL from './utils/api';
 const AuthContext = createContext(null);
 
 const API = `${API_URL}/api/auth`;
+console.log('[Auth] API endpoint:', API);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -45,7 +46,8 @@ export function AuthProvider({ children }) {
     try {
       data = JSON.parse(text);
     } catch {
-      throw new Error('Server error - no response. Is the backend running on port 5000?');
+      console.error('[Auth] Failed to parse response:', text.substring(0, 100));
+      throw new Error('Cannot connect to server. Please try again later.');
     }
     if (!res.ok) throw new Error(data?.error || 'Login failed');
     localStorage.setItem('soundy_token', data.token);
@@ -65,7 +67,8 @@ export function AuthProvider({ children }) {
     try {
       data = JSON.parse(text);
     } catch {
-      throw new Error('Server error - no response. Is the backend running on port 5000?');
+      console.error('[Auth] Failed to parse response:', text.substring(0, 100));
+      throw new Error('Cannot connect to server. Please try again later.');
     }
     if (!res.ok) throw new Error(data?.error || 'Registration failed');
     localStorage.setItem('soundy_token', data.token);
