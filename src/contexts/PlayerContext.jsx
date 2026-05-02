@@ -29,9 +29,11 @@ function onYTReady(cb) {
   ytApiCallbacks.push(cb);
 }
 
-loadYouTubeAPI();
-
 export function PlayerProvider({ children }) {
+  // Load YouTube API only in browser, after component mounts
+  useEffect(() => {
+    loadYouTubeAPI();
+  }, []);
   const { token, getAuthHeaders } = useAuth();
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);

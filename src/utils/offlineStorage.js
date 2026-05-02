@@ -7,8 +7,11 @@ const DB_NAME = 'SoundyOfflineDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'tracks';
 
-// Initialize IndexedDB
+// Initialize IndexedDB - only in browser
 function initDB() {
+  if (typeof window === 'undefined' || !window.indexedDB) {
+    return Promise.reject(new Error('IndexedDB not available'));
+  }
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     

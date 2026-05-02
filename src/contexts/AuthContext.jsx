@@ -7,7 +7,13 @@ const API = `${API_URL}/api/auth`;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('soundy_token'));
+  // Lazy init to avoid SSR issues - localStorage only available in browser
+  const [token, setToken] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('soundy_token');
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

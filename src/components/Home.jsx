@@ -1,31 +1,54 @@
 import { useState, useEffect } from 'react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
-import API_URL from '../utils/api';
+import API_URL, { apiFetch } from '../utils/api';
 import { importFiles } from '../utils/audioImport';
-import { Play, Pause, Music, Upload, Volume2, Clock } from 'lucide-react';
+import { Play, Pause, Music, Upload, Volume2, Clock, Loader2, AlertCircle } from 'lucide-react';
 
 export default function Home({ navigate }) {
   const [songs, setSongs] = useState([]);
   const [localSongs, setLocalSongs] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { playSong, currentSong, isPlaying, togglePlay, recentSongs } = usePlayer();
   const { getAuthHeaders } = useAuth();
 
   // Fetch local uploaded songs
   useEffect(() => {
-    fetch(`${API_URL}/api/songs`)
-      .then(res => res.json())
-      .then(data => setLocalSongs(data.songs || []))
-      .catch(() => {});
+    const loadLocalSongs = async () => {
+      try {
+        console.log('[Home] Fetching local songs...');
+        const res = await apiFetch('/api/songs');
+        const data = await res.json();
+        console.log('[Home] Local songs loaded:', data.songs?.length || 0);
+        setLocalSongs(data.songs || []);
+      } catch (err) {
+        console.error('[Home] Failed to load local songs:', err.message);
+      }
+    };
+    loadLocalSongs();
   }, []);
 
   // Fetch featured iTunes songs for immediate playback
   useEffect(() => {
-    fetch(`${API_URL}/api/songs/featured`)
-      .then(res => res.json())
-      .then(data => setSongs(data.songs || []))
-      .catch(() => {});
+    const loadFeaturedSongs = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        console.log('[Home] Fetching featured songs...');
+        const res = await apiFetch('/api/songs/featured');
+        const data = await res.json();
+        console.log('[Home] Featured songs loaded:', data.songs?.length || 0);
+        setSongs(data.songs || []);
+      } catch (err) {
+        console.error('[Home] Failed to load featured songs:', err.message);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFeaturedSongs();
   }, []);
 
   async function handleUpload(e) {
@@ -98,14 +121,51 @@ export default function Home({ navigate }) {
         </div>
       )}
 
-      {/* Songs Grid */}
-      {allSongs.length === 0 ? (
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-20">
+          <Loader2 className="w-16 h-16 text-[#1db954] mx-auto mb-4 animate-spin" />
+          <h2 className="text-xl font-semibold mb-2">Loading music...</h2>
+          <p className="text-[#b3b3b3]">Fetching songs from backend...</p>
+          <p className="text-xs text-[#666] mt-2">{API_URL}</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="text-center py-12 bg-[#181818] rounded-lg mb-6">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-lg font-semibold mb-2 text-red-400">Failed to load songs</h2>
+          <p className="text-[#b3b3b3] text-sm mb-2">{error}</p>
+          <p className="text-xs text-[#666]">Backend: {API_URL}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-[#1db954] text-black rounded-full text-sm font-medium hover:bg-[#1ed760]"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && allSongs.length === 0 && (
         <div className="text-center py-20">
           <Music className="w-16 h-16 text-[#b3b3b3] mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Loading music...</h2>
-          <p className="text-[#b3b3b3]">Fetching songs from iTunes</p>
+          <h2 className="text-xl font-semibold mb-2">No songs available yet</h2>
+          <p className="text-[#b3b3b3] mb-4">The backend connected but returned no songs.</p>
+          <p className="text-xs text-[#666]">Backend URL: {API_URL}</p>
+          <div className="mt-6 flex gap-3 justify-center">
+            <label className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-[#1db954] hover:bg-[#1ed760] text-black font-medium rounded-full text-sm transition-colors">
+              <Upload className="w-4 h-4" />
+              Upload Music
+              <input type="file" accept="audio/*" multiple onChange={handleUpload} className="hidden" />
+            </label>
+          </div>
         </div>
-      ) : (
+      )}
+
+      {/* Songs Grid */}
+      {!loading && !error && allSongs.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {allSongs.map(song => (
             <div
