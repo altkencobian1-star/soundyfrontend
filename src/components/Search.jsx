@@ -23,19 +23,15 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        const res = await fetch(`${API_URL}/api/music/search`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeaders()
-          },
-          body: JSON.stringify({ query: query.trim() })
+        // Use iTunes search endpoint directly (no API key needed)
+        const res = await fetch(`${API_URL}/api/songs/search-online/${encodeURIComponent(query.trim())}`, {
+          headers: getAuthHeaders()
         });
         const data = await res.json();
-        const results = (data.results || []).map(s => ({
+        const results = (data.songs || []).map(s => ({
           ...s,
-          cover_url: s.cover || s.cover_url,
-          source: s.source || 'online'
+          cover_url: s.cover || s.cover_url || s.artworkUrl100,
+          source: 'itunes'
         }));
         setResults(results);
       } else {
