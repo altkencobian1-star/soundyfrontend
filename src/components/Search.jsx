@@ -23,23 +23,23 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        // Use Spotify Web API search for legal music search
+        // Use Hybrid search: Spotify metadata + YouTube full songs
         let results = [];
         
         try {
-          const spotifyUrl = `${API_URL}/api/songs/spotify-search/${encodeURIComponent(query.trim())}`;
-          console.log('[Search] Searching Spotify Web API:', spotifyUrl);
-          const spotifyRes = await fetch(spotifyUrl, {
+          const hybridUrl = `${API_URL}/api/songs/hybrid-search/${encodeURIComponent(query.trim())}`;
+          console.log('[Search] Hybrid search (Spotify + YouTube):', hybridUrl);
+          const hybridRes = await fetch(hybridUrl, {
             headers: getAuthHeaders()
           });
-          console.log('[Search] Spotify response status:', spotifyRes.status);
+          console.log('[Search] Hybrid response status:', hybridRes.status);
           
-          if (spotifyRes.ok) {
-            const spotifyData = await spotifyRes.json();
-            console.log('[Search] Spotify Web API response:', spotifyData);
+          if (hybridRes.ok) {
+            const hybridData = await hybridRes.json();
+            console.log('[Search] Hybrid search response:', hybridData);
             
-            if (spotifyData && spotifyData.songs && spotifyData.songs.length > 0) {
-              results = spotifyData.songs.map(s => ({
+            if (hybridData && hybridData.songs && hybridData.songs.length > 0) {
+              results = hybridData.songs.map(s => ({
                 id: s.id,
                 title: s.title,
                 artist: s.artist || 'Unknown',
@@ -50,13 +50,40 @@ export default function Search() {
                 source: s.source,
                 previewUrl: s.previewUrl,
                 spotify_id: s.spotify_id,
-                external_urls: s.external_urls
+                external_urls: s.external_urls,
+                // Hybrid specific fields
+                youtube_id: s.youtube_id,
+                youtube_url: s.youtube_url,
+                youtube_thumbnail: s.youtube_thumbnail,
+                full_song_available: s.full_song_available
               }));
-              console.log('[Search] Using Spotify Web API results:', results);
+              console.log('[Search] Using Hybrid search results:', results);
             }
           }
         } catch (error) {
-          console.log('[Search] Spotify Web API search failed, trying iTunes:', error.message);
+          console.log('[Search] Hybrid search failed, trying Spotify only:', error.message);
+          
+          // Fallback to Spotify only
+          try {
+            const spotifyUrl = `${API_URL}/api/songs/spotify-search/${encodeURIComponent(query.trim())}`;
+            console.log('[Search] Fallback to Spotify:', spotifyUrl);
+            const spotifyRes = await fetch(spotifyUrl, {
+              headers: getAuthHeaders()
+            });
+            
+            if (spotifyRes.ok) {
+              const spotifyData = await spotifyRes.json();
+              if (spotifyData && spotifyData.songs && spotifyData.songs.length > 0) {
+                results = spotifyData.songs.map(s => ({
+                  ...s,
+                  full_song_available: false
+                }));
+                console.log('[Search] Using Spotify fallback results:', results);
+              }
+            }
+          } catch (fallbackError) {
+            console.log('[Search] Spotify fallback also failed:', fallbackError.message);
+          }
         }
         
         // Fallback to iTunes if YouTube failed

@@ -365,7 +365,56 @@ export function PlayerProvider({ children }) {
       }
     }
 
-    // ONLINE MODE - For Spotify songs
+    // ONLINE MODE - For Hybrid songs (Spotify metadata + YouTube full songs)
+    if (song.source === 'hybrid' || song.youtube_id) {
+      console.log('[Player] Playing Hybrid song (Spotify + YouTube):', song.title);
+      
+      // If full song is available via YouTube, play it
+      if (song.full_song_available && song.youtube_id) {
+        console.log('[Player] Playing full YouTube song:', song.youtube_id);
+        setVideoId(song.youtube_id);
+        createYTPlayer(song.youtube_id, true);
+        startAudioProgressTracking();
+        return;
+      }
+      
+      // Fallback to Spotify preview
+      if (song.previewUrl) {
+        console.log('[Player] Playing Spotify preview for:', song.title);
+        const audio = audioRef.current;
+        audio.src = song.previewUrl;
+        audio.crossOrigin = 'anonymous';
+        
+        audio.load();
+        audio.onerror = (e) => {
+          console.error('Audio error:', e, audio.error);
+          setIsLoading(false);
+          setIsPlaying(false);
+        };
+        
+        audio.onloadedmetadata = () => {
+          setDuration(audio.duration);
+          setProgress(0);
+          setIsLoading(false);
+          audio.play().catch((err) => {
+            console.error('Audio play failed:', err);
+            setIsLoading(false);
+            setIsPlaying(false);
+          });
+          startAudioProgressTracking();
+        };
+        return;
+      } else {
+        // Open Spotify in new tab if no preview available
+        if (song.external_urls?.spotify) {
+          window.open(song.external_urls.spotify, '_blank');
+          setIsLoading(false);
+          return;
+        }
+      }
+    }
+
+    // ONLINE MODE - For Spotify songs only
     if (song.source === 'spotify' || song.spotify_id) {
       console.log('[Player] Playing Spotify song:', song.title);
       
