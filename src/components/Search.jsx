@@ -24,10 +24,14 @@ export default function Search() {
     try {
       if (searchType === 'online') {
         // Use iTunes search endpoint directly (no API key needed)
-        const res = await fetch(`${API_URL}/api/songs/search-online/${encodeURIComponent(query.trim())}`, {
+        const searchUrl = `${API_URL}/api/songs/search-online/${encodeURIComponent(query.trim())}`;
+        console.log('[Search] Searching online:', searchUrl);
+        const res = await fetch(searchUrl, {
           headers: getAuthHeaders()
         });
+        console.log('[Search] Response status:', res.status);
         const data = await res.json();
+        console.log('[Search] Response data:', data);
         const results = (data.songs || []).map(s => ({
           id: s.id,
           title: s.title,
@@ -39,16 +43,22 @@ export default function Search() {
           source: 'itunes',
           previewUrl: s.previewUrl
         }));
+        console.log('[Search] Mapped results:', results);
         setResults(results);
       } else {
-        const res = await fetch(`${API_URL}/api/songs/search/${encodeURIComponent(query.trim())}`, {
+        const localSearchUrl = `${API_URL}/api/songs/search/${encodeURIComponent(query.trim())}`;
+        console.log('[Search] Searching local:', localSearchUrl);
+        const res = await fetch(localSearchUrl, {
           headers: getAuthHeaders()
         });
+        console.log('[Search] Local response status:', res.status);
         const data = await res.json();
+        console.log('[Search] Local response data:', data);
         setResults((data.songs || []).map(s => ({ ...s, source: 'local' })));
       }
       setSearched(true);
-    } catch {
+    } catch (error) {
+      console.error('[Search] Search error:', error);
       setResults([]);
     } finally {
       setSearching(false);
