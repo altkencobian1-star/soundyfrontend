@@ -23,61 +23,56 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        // Use simple YouTube search for full songs
+        // Discovery mode: Spotify/iTunes for finding music (30s previews)
         let results = [];
         
         try {
-          const youtubeUrl = `${API_URL}/api/songs/youtube-search/${encodeURIComponent(query.trim())}`;
-          console.log('[Search] YouTube search for full songs:', youtubeUrl);
-          const youtubeRes = await fetch(youtubeUrl, {
+          const spotifyUrl = `${API_URL}/api/songs/spotify-search/${encodeURIComponent(query.trim())}`;
+          console.log('[Search] Discovery search (Spotify previews):', spotifyUrl);
+          const spotifyRes = await fetch(spotifyUrl, {
             headers: getAuthHeaders()
           });
-          console.log('[Search] YouTube response status:', youtubeRes.status);
+          console.log('[Search] Spotify response status:', spotifyRes.status);
           
-          if (youtubeRes.ok) {
-            const youtubeData = await youtubeRes.json();
-            console.log('[Search] YouTube search response:', youtubeData);
+          if (spotifyRes.ok) {
+            const spotifyData = await spotifyRes.json();
+            console.log('[Search] Spotify discovery response:', spotifyData);
             
-            if (youtubeData && youtubeData.songs && youtubeData.songs.length > 0) {
-              results = youtubeData.songs.map(s => ({
-                id: s.id,
-                title: s.title,
-                artist: s.artist || 'Unknown',
-                album: s.album,
-                duration: s.duration,
-                file_path: s.file_path,
-                cover_url: s.cover_url,
-                source: s.source,
-                previewUrl: s.previewUrl,
-                youtube_id: s.youtube_id,
-                full_song_available: s.full_song_available
+            if (spotifyData && spotifyData.songs && spotifyData.songs.length > 0) {
+              results = spotifyData.songs.map(s => ({
+                ...s,
+                discovery_mode: true,
+                full_song_available: false,
+                message: "30s preview - Add to your library for full song"
               }));
-              console.log('[Search] Using YouTube results (FULL SONGS):', results);
+              console.log('[Search] Using Spotify discovery results:', results);
             }
           }
         } catch (error) {
-          console.log('[Search] YouTube search failed, trying Spotify:', error.message);
+          console.log('[Search] Discovery search failed, trying iTunes:', error.message);
           
-          // Fallback to Spotify only
+          // Fallback to iTunes
           try {
-            const spotifyUrl = `${API_URL}/api/songs/spotify-search/${encodeURIComponent(query.trim())}`;
-            console.log('[Search] Fallback to Spotify:', spotifyUrl);
-            const spotifyRes = await fetch(spotifyUrl, {
+            const itunesUrl = `${API_URL}/api/songs/search-online/${encodeURIComponent(query.trim())}`;
+            console.log('[Search] Fallback to iTunes:', itunesUrl);
+            const itunesRes = await fetch(itunesUrl, {
               headers: getAuthHeaders()
             });
             
-            if (spotifyRes.ok) {
-              const spotifyData = await spotifyRes.json();
-              if (spotifyData && spotifyData.songs && spotifyData.songs.length > 0) {
-                results = spotifyData.songs.map(s => ({
+            if (itunesRes.ok) {
+              const itunesData = await itunesRes.json();
+              if (itunesData && itunesData.songs && itunesData.songs.length > 0) {
+                results = itunesData.songs.map(s => ({
                   ...s,
-                  full_song_available: false
+                  discovery_mode: true,
+                  full_song_available: false,
+                  message: "30s preview - Add to your library for full song"
                 }));
-                console.log('[Search] Using Spotify fallback results:', results);
+                console.log('[Search] Using iTunes discovery results:', results);
               }
             }
           } catch (fallbackError) {
-            console.log('[Search] Spotify fallback also failed:', fallbackError.message);
+            console.log('[Search] Discovery search failed completely:', fallbackError.message);
           }
         }
         

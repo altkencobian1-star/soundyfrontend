@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Music, Play, Trash2, Download, Upload, Search, Filter, Clock } from 'lucide-react';
+import { Search, Music, Play, Pause, Download, Heart, Trash2, Upload, Plus, Link } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
 import API_URL from '../utils/api';
 import UploadMusic from './UploadMusic';
+import AddYouTubeSong from './AddYouTubeSong';
 
 export default function PersonalLibrary() {
   const [songs, setSongs] = useState([]);
@@ -11,6 +12,7 @@ export default function PersonalLibrary() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showUpload, setShowUpload] = useState(false);
+  const [showAddYouTube, setShowAddYouTube] = useState(false);
   const { playSong } = usePlayer();
   const { getAuthHeaders } = useAuth();
 
@@ -105,27 +107,58 @@ export default function PersonalLibrary() {
     );
   }
 
+  if (showAddYouTube) {
+    return (
+      <div className="personal-library">
+        <div className="library-header">
+          <button 
+            className="back-button"
+            onClick={() => setShowAddYouTube(false)}
+          >
+            ← Back to Library
+          </button>
+          <h2>Add YouTube Song</h2>
+        </div>
+        <AddYouTubeSong onAddSuccess={(song) => {
+          setSongs(prev => [...prev, song]);
+          setShowAddYouTube(false);
+        }} />
+      </div>
+    );
+  }
+
   return (
     <div className="personal-library">
       <div className="library-header">
         <div className="header-content">
-          <h2>Personal Library</h2>
-          <p>Your uploaded music collection</p>
+          <div className="header-info">
+            <Music size={24} />
+            <h2>Your Music Library</h2>
+            <span className="song-count">{songs.length} songs</span>
+          </div>
+          <div className="header-actions">
+            <button 
+              className="youtube-button"
+              onClick={() => setShowAddYouTube(true)}
+            >
+              <Link size={16} />
+              Add YouTube
+            </button>
+            <button 
+              className="upload-button"
+              onClick={() => setShowUpload(true)}
+            >
+              <Upload size={16} />
+              Upload MP3
+            </button>
+          </div>
         </div>
-        <button 
-          className="upload-button"
-          onClick={() => setShowUpload(true)}
-        >
-          <Upload size={20} />
-          Upload Music
-        </button>
+        {error && (
+          <div className="error-message">
+            <span>{error}</span>
+          </div>
+        )}
       </div>
-
-      {error && (
-        <div className="error-message">
-          <span>{error}</span>
-        </div>
-      )}
 
       <div className="library-controls">
         <div className="search-bar">
@@ -249,6 +282,25 @@ export default function PersonalLibrary() {
           background: #f3f4f6;
         }
 
+        .youtube-button {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: #ef4444;
+          color: white;
+          border: none;
+          padding: 10px 16px;
+          border-radius: 8px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.2s;
+          margin-right: 8px;
+        }
+
+        .youtube-button:hover {
+          background: #dc2626;
+        }
+
         .upload-button {
           display: flex;
           align-items: center;
@@ -258,8 +310,8 @@ export default function PersonalLibrary() {
           border: none;
           padding: 10px 16px;
           border-radius: 8px;
-          cursor: pointer;
           font-weight: 500;
+          cursor: pointer;
           transition: background 0.2s;
         }
 
