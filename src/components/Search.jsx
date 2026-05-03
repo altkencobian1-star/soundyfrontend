@@ -29,9 +29,15 @@ export default function Search() {
         });
         const data = await res.json();
         const results = (data.songs || []).map(s => ({
-          ...s,
-          cover_url: s.cover || s.cover_url || s.artworkUrl100,
-          source: 'itunes'
+          id: s.id,
+          title: s.title,
+          artist: s.artist,
+          album: s.album,
+          duration: s.duration,
+          file_path: s.file_path,
+          cover_url: s.cover_url || s.artworkUrl100,
+          source: 'itunes',
+          previewUrl: s.previewUrl
         }));
         setResults(results);
       } else {
