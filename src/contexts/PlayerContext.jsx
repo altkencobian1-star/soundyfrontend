@@ -368,9 +368,10 @@ export function PlayerProvider({ children }) {
     // ONLINE MODE - For Hybrid songs (Spotify metadata + YouTube full songs)
     if (song.source === 'hybrid' || song.youtube_id) {
       console.log('[Player] Playing Hybrid song (Spotify + YouTube):', song.title);
+      console.log('[Player] Full song available:', song.full_song_available, 'YouTube ID:', song.youtube_id);
       
-      // If full song is available via YouTube, play it
-      if (song.full_song_available && song.youtube_id) {
+      // ALWAYS prioritize YouTube full song if available
+      if (song.youtube_id) {
         console.log('[Player] Playing full YouTube song:', song.youtube_id);
         setVideoId(song.youtube_id);
         createYTPlayer(song.youtube_id, true);
@@ -378,9 +379,9 @@ export function PlayerProvider({ children }) {
         return;
       }
       
-      // Fallback to Spotify preview
-      if (song.previewUrl) {
-        console.log('[Player] Playing Spotify preview for:', song.title);
+      // Only use Spotify preview if NO YouTube available
+      if (song.previewUrl && !song.youtube_id) {
+        console.log('[Player] No YouTube found, playing Spotify preview for:', song.title);
         const audio = audioRef.current;
         audio.src = song.previewUrl;
         audio.crossOrigin = 'anonymous';
