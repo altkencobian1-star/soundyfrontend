@@ -312,15 +312,27 @@ export function PlayerProvider({ children }) {
       return;
     }
 
-    // ONLINE MODE - YouTube songs (from Invidious search) - play directly via iframe
+    // ONLINE MODE - YouTube songs (from YouTube Data API search) - play directly via iframe
     if (song.source === 'youtube' || song.youtubeId) {
-      const ytId = song.youtubeId || (song.id && song.id.startsWith('youtube_') ? song.id.replace('youtube_', '') : null);
+      // Extract YouTube video ID from file_path or id
+      let ytId = song.youtubeId;
+      
+      if (!ytId && song.id && song.id.length === 11) {
+        ytId = song.id; // Direct YouTube video ID
+      }
+      
+      if (!ytId && song.file_path && song.file_path.includes('youtube.com/watch?v=')) {
+        ytId = song.file_path.split('v=')[1]?.split('&')[0];
+      }
+      
       if (ytId) {
         console.log('[Player] Playing YouTube video directly:', ytId);
         setVideoId(ytId);
         createYTPlayer(ytId, true);
         startAudioProgressTracking();
         return;
+      } else {
+        console.error('[Player] No YouTube video ID found in song:', song);
       }
     }
 

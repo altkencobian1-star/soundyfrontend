@@ -23,12 +23,12 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        // Try YouTube search first, fallback to iTunes if it fails
+        // Use YouTube Data API search for full songs
         let results = [];
         
         try {
           const youtubeUrl = `${API_URL}/api/songs/youtube-search/${encodeURIComponent(query.trim())}`;
-          console.log('[Search] Trying YouTube:', youtubeUrl);
+          console.log('[Search] Searching YouTube Data API:', youtubeUrl);
           const ytRes = await fetch(youtubeUrl, {
             headers: getAuthHeaders()
           });
@@ -36,7 +36,7 @@ export default function Search() {
           
           if (ytRes.ok) {
             const ytData = await ytRes.json();
-            console.log('[Search] YouTube response data:', ytData);
+            console.log('[Search] YouTube Data API response:', ytData);
             
             if (ytData && ytData.songs && ytData.songs.length > 0) {
               results = ytData.songs.map(s => ({
@@ -50,11 +50,11 @@ export default function Search() {
                 source: s.source,
                 previewUrl: s.previewUrl
               }));
-              console.log('[Search] Using YouTube results:', results);
+              console.log('[Search] Using YouTube Data API results:', results);
             }
           }
         } catch (error) {
-          console.log('[Search] YouTube search failed, trying iTunes:', error.message);
+          console.log('[Search] YouTube Data API search failed, trying iTunes:', error.message);
         }
         
         // Fallback to iTunes if YouTube failed
