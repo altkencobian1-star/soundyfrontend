@@ -362,64 +362,79 @@ export function PlayerProvider({ children }) {
         createYTPlayer(ytId, true);
         startAudioProgressTracking();
         return;
+      }
+    }
+
+    // ONLINE MODE - For Spotify songs
+    if (song.source === 'spotify' || song.spotify_id) {
+      console.log('[Player] Playing Spotify song:', song.title);
+      
+      // For Spotify, we can play the preview if available, or redirect to Spotify
+      if (song.previewUrl) {
+        // Play 30-second preview
+        const audio = audioRef.current;
+        audio.src = song.previewUrl;
+        audio.crossOrigin = 'anonymous';
+        
+        audio.load();
+        audio.onerror = (e) => {
+          console.error('Audio error:', e, audio.error);
+          setIsLoading(false);
+          setIsPlaying(false);
+        };
+        
+        audio.onloadedmetadata = () => {
+          setDuration(audio.duration);
+          setProgress(0);
+          setIsLoading(false);
+          audio.play().catch((err) => {
+            console.error('Audio play failed:', err);
+            setIsLoading(false);
+            setIsPlaying(false);
+          });
+          startAudioProgressTracking();
+        };
+        return;
       } else {
-        console.error('[Player] No YouTube video ID found in song:', song);
+        // Open Spotify in new tab if no preview available
+        if (song.external_urls?.spotify) {
+          window.open(song.external_urls.spotify, '_blank');
+          setIsLoading(false);
+          return;
+        }
       }
     }
 
     // ONLINE MODE - For online (iTunes) songs that aren't downloaded
     if (song.source === 'itunes') {
-      // Search YouTube for full song via backend
-      console.log('[Player] Searching YouTube for full song:', song.title, song.artist);
+      console.log('[Player] Playing iTunes preview:', song.title);
       
-      try {
-        const searchResponse = await fetch(`/api/search/youtube?q=${encodeURIComponent(song.title + ' ' + song.artist + ' audio')}`, {
-          headers: getAuthHeaders()
-        });
+      // Play iTunes preview
+      if (song.previewUrl) {
+        const audio = audioRef.current;
+        audio.src = song.previewUrl;
+        audio.crossOrigin = 'anonymous';
         
-        if (searchResponse.ok) {
-          const searchData = await searchResponse.json();
-          console.log('[Player] YouTube search result:', searchData);
-          
-          if (searchData.songs && searchData.songs.length > 0) {
-            const ytId = searchData.songs[0].youtubeId;
-            console.log('[Player] Playing YouTube video:', ytId);
-            
-            // Play via YouTube player
-            setVideoId(ytId);
-            createYTPlayer(ytId, true);
-            startAudioProgressTracking();
-            return;
-          }
-        }
-        
-        // Fallback to preview if YouTube search fails
-        console.log('[Player] YouTube not available, falling back to preview');
-        if (song.previewUrl) {
-          setVideoId(null);
-          if (playerRef.current) { try { playerRef.current.destroy(); } catch {} playerRef.current = null; }
-          audio.src = song.previewUrl;
-          audio.play().catch(() => {});
-          startAudioProgressTracking();
-        } else {
+        audio.load();
+        audio.onerror = (e) => {
+          console.error('Audio error:', e, audio.error);
           setIsLoading(false);
           setIsPlaying(false);
-        }
-      } catch (err) {
-        console.error('[Player] YouTube search failed:', err);
-        // Fallback to preview
-        if (song.previewUrl) {
-          setVideoId(null);
-          if (playerRef.current) { try { playerRef.current.destroy(); } catch {} playerRef.current = null; }
-          audio.src = song.previewUrl;
-          audio.play().catch(() => {});
-          startAudioProgressTracking();
-        } else {
+        };
+        
+        audio.onloadedmetadata = () => {
+          setDuration(audio.duration);
+          setProgress(0);
           setIsLoading(false);
-          setIsPlaying(false);
-        }
+          audio.play().catch((err) => {
+            console.error('Audio play failed:', err);
+            setIsLoading(false);
+            setIsPlaying(false);
+          });
+          startAudioProgressTracking();
+        };
+        return;
       }
-      return;
     }
 
     // For local songs (no source or source !== 'itunes'), use /api/songs/:id/stream

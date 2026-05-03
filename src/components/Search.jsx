@@ -23,23 +23,23 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        // Use YouTube Data API search for full songs
+        // Use Spotify Web API search for legal music search
         let results = [];
         
         try {
-          const youtubeUrl = `${API_URL}/api/songs/youtube-search/${encodeURIComponent(query.trim())}`;
-          console.log('[Search] Searching YouTube Data API:', youtubeUrl);
-          const ytRes = await fetch(youtubeUrl, {
+          const spotifyUrl = `${API_URL}/api/songs/spotify-search/${encodeURIComponent(query.trim())}`;
+          console.log('[Search] Searching Spotify Web API:', spotifyUrl);
+          const spotifyRes = await fetch(spotifyUrl, {
             headers: getAuthHeaders()
           });
-          console.log('[Search] YouTube response status:', ytRes.status);
+          console.log('[Search] Spotify response status:', spotifyRes.status);
           
-          if (ytRes.ok) {
-            const ytData = await ytRes.json();
-            console.log('[Search] YouTube Data API response:', ytData);
+          if (spotifyRes.ok) {
+            const spotifyData = await spotifyRes.json();
+            console.log('[Search] Spotify Web API response:', spotifyData);
             
-            if (ytData && ytData.songs && ytData.songs.length > 0) {
-              results = ytData.songs.map(s => ({
+            if (spotifyData && spotifyData.songs && spotifyData.songs.length > 0) {
+              results = spotifyData.songs.map(s => ({
                 id: s.id,
                 title: s.title,
                 artist: s.artist || 'Unknown',
@@ -48,13 +48,15 @@ export default function Search() {
                 file_path: s.file_path,
                 cover_url: s.cover_url,
                 source: s.source,
-                previewUrl: s.previewUrl
+                previewUrl: s.previewUrl,
+                spotify_id: s.spotify_id,
+                external_urls: s.external_urls
               }));
-              console.log('[Search] Using YouTube Data API results:', results);
+              console.log('[Search] Using Spotify Web API results:', results);
             }
           }
         } catch (error) {
-          console.log('[Search] YouTube Data API search failed, trying iTunes:', error.message);
+          console.log('[Search] Spotify Web API search failed, trying iTunes:', error.message);
         }
         
         // Fallback to iTunes if YouTube failed
