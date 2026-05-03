@@ -23,26 +23,30 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        // Use iTunes search endpoint directly (no API key needed)
-        const searchUrl = `${API_URL}/api/songs/search-online/${encodeURIComponent(query.trim())}`;
-        console.log('[Search] Searching online:', searchUrl);
+        // Use YouTube search for full songs (no API key needed)
+        const searchUrl = `${API_URL}/api/songs/youtube-search/${encodeURIComponent(query.trim())}`;
+        console.log('[Search] Searching YouTube:', searchUrl);
         const res = await fetch(searchUrl, {
           headers: getAuthHeaders()
         });
         console.log('[Search] Response status:', res.status);
         const data = await res.json();
         console.log('[Search] Response data:', data);
-        const results = (data.songs || []).map(s => ({
-          id: s.id,
-          title: s.title,
-          artist: s.artist,
-          album: s.album,
-          duration: s.duration,
-          file_path: s.file_path,
-          cover_url: s.cover_url || s.artworkUrl100,
-          source: 'itunes',
-          previewUrl: s.previewUrl
-        }));
+        
+        let results = [];
+        if (data && !data.error) {
+          results = [{
+            id: data.id,
+            title: data.title,
+            artist: data.artist || data.uploader || 'Unknown',
+            album: 'YouTube',
+            duration: data.duration,
+            file_path: data.webpage_url,
+            cover_url: data.thumbnail,
+            source: 'youtube',
+            previewUrl: null
+          }];
+        }
         console.log('[Search] Mapped results:', results);
         setResults(results);
       } else {
