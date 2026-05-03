@@ -38,18 +38,18 @@ export default function Search() {
             const ytData = await ytRes.json();
             console.log('[Search] YouTube response data:', ytData);
             
-            if (ytData && !ytData.error) {
-              results = [{
-                id: ytData.id,
-                title: ytData.title,
-                artist: ytData.artist || ytData.uploader || 'Unknown',
-                album: 'YouTube',
-                duration: ytData.duration,
-                file_path: ytData.webpage_url,
-                cover_url: ytData.thumbnail,
-                source: 'youtube',
-                previewUrl: null
-              }];
+            if (ytData && ytData.songs && ytData.songs.length > 0) {
+              results = ytData.songs.map(s => ({
+                id: s.id,
+                title: s.title,
+                artist: s.artist || 'Unknown',
+                album: s.album,
+                duration: s.duration,
+                file_path: s.file_path,
+                cover_url: s.cover_url,
+                source: s.source,
+                previewUrl: s.previewUrl
+              }));
               console.log('[Search] Using YouTube results:', results);
             }
           }
