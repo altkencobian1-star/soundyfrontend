@@ -85,6 +85,7 @@ export default function Search() {
         }
         
         setResults(results);
+        console.log('[Search] Final results count:', results.length);
       } else {
         const localSearchUrl = `${API_URL}/api/songs/search/${encodeURIComponent(query.trim())}`;
         console.log('[Search] Searching local:', localSearchUrl);
@@ -94,12 +95,15 @@ export default function Search() {
         console.log('[Search] Local response status:', res.status);
         const data = await res.json();
         console.log('[Search] Local response data:', data);
-        setResults((data.songs || []).map(s => ({ ...s, source: 'local' })));
+        const localResults = (data.songs || []).map(s => ({ ...s, source: 'local' }));
+        console.log('[Search] Local results count:', localResults.length);
+        setResults(localResults);
       }
       setSearched(true);
     } catch (error) {
       console.error('[Search] Search error:', error);
       setResults([]);
+      setSearched(true);
     } finally {
       setSearching(false);
     }
