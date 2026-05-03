@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useOffline } from '../contexts/OfflineContext';
 import { useAuth } from '../contexts/AuthContext';
+import API_URL from '../utils/api';
 import { Search as SearchIcon, Play, Music, X, Globe, HardDrive, Download, Check, WifiOff, Heart } from 'lucide-react';
 
 export default function Search() {
@@ -22,7 +23,7 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`, {
+        const res = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query.trim())}`, {
           headers: getAuthHeaders()
         });
         const data = await res.json();
@@ -37,7 +38,7 @@ export default function Search() {
         }));
         setResults([...localResults, ...ytResults]);
       } else {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`, {
+        const res = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query.trim())}`, {
           headers: getAuthHeaders()
         });
         const data = await res.json();
