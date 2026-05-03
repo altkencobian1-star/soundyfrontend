@@ -23,23 +23,23 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        // Use Hybrid search: Spotify metadata + YouTube full songs
+        // Use simple YouTube search for full songs
         let results = [];
         
         try {
-          const hybridUrl = `${API_URL}/api/songs/hybrid-search/${encodeURIComponent(query.trim())}`;
-          console.log('[Search] Hybrid search (Spotify + YouTube):', hybridUrl);
-          const hybridRes = await fetch(hybridUrl, {
+          const youtubeUrl = `${API_URL}/api/songs/youtube-search/${encodeURIComponent(query.trim())}`;
+          console.log('[Search] YouTube search for full songs:', youtubeUrl);
+          const youtubeRes = await fetch(youtubeUrl, {
             headers: getAuthHeaders()
           });
-          console.log('[Search] Hybrid response status:', hybridRes.status);
+          console.log('[Search] YouTube response status:', youtubeRes.status);
           
-          if (hybridRes.ok) {
-            const hybridData = await hybridRes.json();
-            console.log('[Search] Hybrid search response:', hybridData);
+          if (youtubeRes.ok) {
+            const youtubeData = await youtubeRes.json();
+            console.log('[Search] YouTube search response:', youtubeData);
             
-            if (hybridData && hybridData.songs && hybridData.songs.length > 0) {
-              results = hybridData.songs.map(s => ({
+            if (youtubeData && youtubeData.songs && youtubeData.songs.length > 0) {
+              results = youtubeData.songs.map(s => ({
                 id: s.id,
                 title: s.title,
                 artist: s.artist || 'Unknown',
@@ -49,19 +49,14 @@ export default function Search() {
                 cover_url: s.cover_url,
                 source: s.source,
                 previewUrl: s.previewUrl,
-                spotify_id: s.spotify_id,
-                external_urls: s.external_urls,
-                // Hybrid specific fields
                 youtube_id: s.youtube_id,
-                youtube_url: s.youtube_url,
-                youtube_thumbnail: s.youtube_thumbnail,
                 full_song_available: s.full_song_available
               }));
-              console.log('[Search] Using Hybrid search results:', results);
+              console.log('[Search] Using YouTube results (FULL SONGS):', results);
             }
           }
         } catch (error) {
-          console.log('[Search] Hybrid search failed, trying Spotify only:', error.message);
+          console.log('[Search] YouTube search failed, trying Spotify:', error.message);
           
           // Fallback to Spotify only
           try {
