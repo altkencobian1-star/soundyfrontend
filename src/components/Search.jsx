@@ -23,26 +23,27 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        const res = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query.trim())}`, {
-          headers: getAuthHeaders()
+        const res = await fetch(`${API_URL}/api/music/search`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
+          body: JSON.stringify({ query: query.trim() })
         });
         const data = await res.json();
-        const ytResults = (data.results?.youtube || []).map(s => ({
+        const results = (data.results || []).map(s => ({
           ...s,
           cover_url: s.cover || s.cover_url,
-          source: 'youtube'
+          source: s.source || 'online'
         }));
-        const localResults = (data.results?.local || []).map(s => ({
-          ...s,
-          source: 'local'
-        }));
-        setResults([...localResults, ...ytResults]);
+        setResults(results);
       } else {
-        const res = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query.trim())}`, {
+        const res = await fetch(`${API_URL}/api/songs/search/${encodeURIComponent(query.trim())}`, {
           headers: getAuthHeaders()
         });
         const data = await res.json();
-        setResults((data.results?.local || []).map(s => ({ ...s, source: 'local' })));
+        setResults((data.songs || []).map(s => ({ ...s, source: 'local' })));
       }
       setSearched(true);
     } catch {
