@@ -23,31 +23,67 @@ export default function Search() {
     setSearching(true);
     try {
       if (searchType === 'online') {
-        // Use YouTube search for full songs (no API key needed)
-        const searchUrl = `${API_URL}/api/songs/youtube-search/${encodeURIComponent(query.trim())}`;
-        console.log('[Search] Searching YouTube:', searchUrl);
-        const res = await fetch(searchUrl, {
-          headers: getAuthHeaders()
-        });
-        console.log('[Search] Response status:', res.status);
-        const data = await res.json();
-        console.log('[Search] Response data:', data);
-        
+        // Try YouTube search first, fallback to iTunes if it fails
         let results = [];
-        if (data && !data.error) {
-          results = [{
-            id: data.id,
-            title: data.title,
-            artist: data.artist || data.uploader || 'Unknown',
-            album: 'YouTube',
-            duration: data.duration,
-            file_path: data.webpage_url,
-            cover_url: data.thumbnail,
-            source: 'youtube',
-            previewUrl: null
-          }];
+        
+        try {
+          const youtubeUrl = `${API_URL}/api/songs/youtube-search/${encodeURIComponent(query.trim())}`;
+          console.log('[Search] Trying YouTube:', youtubeUrl);
+          const ytRes = await fetch(youtubeUrl, {
+            headers: getAuthHeaders()
+          });
+          console.log('[Search] YouTube response status:', ytRes.status);
+          
+          if (ytRes.ok) {
+            const ytData = await ytRes.json();
+            console.log('[Search] YouTube response data:', ytData);
+            
+            if (ytData && !ytData.error) {
+              results = [{
+                id: ytData.id,
+                title: ytData.title,
+                artist: ytData.artist || ytData.uploader || 'Unknown',
+                album: 'YouTube',
+                duration: ytData.duration,
+                file_path: ytData.webpage_url,
+                cover_url: ytData.thumbnail,
+                source: 'youtube',
+                previewUrl: null
+              }];
+              console.log('[Search] Using YouTube results:', results);
+            }
+          }
+        } catch (error) {
+          console.log('[Search] YouTube search failed, trying iTunes:', error.message);
         }
-        console.log('[Search] Mapped results:', results);
+        
+        // Fallback to iTunes if YouTube failed
+        if (results.length === 0) {
+          const itunesUrl = `${API_URL}/api/songs/search-online/${encodeURIComponent(query.trim())}`;
+          console.log('[Search] Fallback to iTunes:', itunesUrl);
+          const itunesRes = await fetch(itunesUrl, {
+            headers: getAuthHeaders()
+          });
+          console.log('[Search] iTunes response status:', itunesRes.status);
+          
+          if (itunesRes.ok) {
+            const itunesData = await itunesRes.json();
+            console.log('[Search] iTunes response data:', itunesData);
+            results = (itunesData.songs || []).map(s => ({
+              id: s.id,
+              title: s.title,
+              artist: s.artist,
+              album: s.album,
+              duration: s.duration,
+              file_path: s.file_path,
+              cover_url: s.cover_url || s.artworkUrl100,
+              source: 'itunes',
+              previewUrl: s.previewUrl
+            }));
+            console.log('[Search] Using iTunes results:', results);
+          }
+        }
+        
         setResults(results);
       } else {
         const localSearchUrl = `${API_URL}/api/songs/search/${encodeURIComponent(query.trim())}`;
