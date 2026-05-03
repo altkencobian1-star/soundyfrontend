@@ -312,6 +312,37 @@ export function PlayerProvider({ children }) {
       return;
     }
 
+    // PERSONAL LIBRARY MODE - Direct server streaming
+    if (song.source === 'personal' || song.user_id) {
+      console.log('[Player] Playing personal library file from server:', song.file_path);
+      
+      // Create audio element for direct streaming
+      const audio = audioRef.current;
+      audio.src = `${API_URL}${song.file_path}`;
+      audio.crossOrigin = 'anonymous';
+      
+      audio.load();
+      audio.onerror = (e) => {
+        console.error('Audio error:', e, audio.error);
+        setIsLoading(false);
+        setIsPlaying(false);
+      };
+      
+      audio.onloadedmetadata = () => {
+        setDuration(audio.duration);
+        setProgress(0);
+        setIsLoading(false);
+        audio.play().catch((err) => {
+          console.error('Audio play failed:', err);
+          setIsLoading(false);
+          setIsPlaying(false);
+        });
+        startAudioProgressTracking();
+      };
+      
+      return;
+    }
+
     // ONLINE MODE - YouTube songs (from YouTube Data API search) - play directly via iframe
     if (song.source === 'youtube' || song.youtubeId) {
       // Extract YouTube video ID from file_path or id
